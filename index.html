@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BYDLENÍ – Interaktivní mapa ČR</title>
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin=""
+    >
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="app">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+
+        <div class="brand">
+            <div class="brand-mark">B</div>
+            <div>
+                <div class="brand-title">BYDLENÍ</div>
+                <div class="brand-subtitle">REAL ESTATE INTELLIGENCE</div>
+            </div>
+        </div>
+
+        <form id="searchForm" class="search-box">
+            <span class="search-icon">⌕</span>
+
+            <input
+                id="searchInput"
+                type="text"
+                autocomplete="off"
+                placeholder="Hledat město, adresu nebo lokalitu..."
+            >
+
+            <button type="submit">Hledat</button>
+
+            <div id="searchResults" class="search-results"></div>
+        </form>
+
+        <div class="top-controls">
+
+            <select id="regionSelect">
+                <option value="all">Celá Česká republika</option>
+            </select>
+
+            <div class="mode-switch">
+                <button class="mode active">Bydlení</button>
+                <button class="mode">Profi</button>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- MAP -->
+    <main id="map"></main>
+
+
+    <!-- MAP LAYERS -->
+    <aside class="layers-panel">
+
+        <div class="panel-header">
+            <div>
+                <div class="panel-title">Mapové vrstvy</div>
+                <div class="panel-subtitle">Kliknutím na název aktivuješ vrstvu</div>
+            </div>
+
+            <button id="layersToggle" class="panel-toggle">−</button>
+        </div>
+
+        <div id="layersContent">
+
+            <label class="layer-row active" data-layer="prices">
+                <input type="checkbox" checked>
+                <span class="layer-icon price-icon">₿</span>
+
+                <span class="layer-text">
+                    <strong>Ceny nemovitostí</strong>
+                    <small>Nabídková cena Kč/m²</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="rent">
+                <input type="checkbox">
+                <span class="layer-icon rent-icon">↗</span>
+
+                <span class="layer-text">
+                    <strong>Nájemné</strong>
+                    <small>Kč/m² / měsíc</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="green">
+                <input type="checkbox">
+                <span class="layer-icon green-icon">🌳</span>
+
+                <span class="layer-text">
+                    <strong>Zeleň</strong>
+                    <small>DEMO intenzita zeleně</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="noise">
+                <input type="checkbox">
+                <span class="layer-icon noise-icon">◉</span>
+
+                <span class="layer-text">
+                    <strong>Hluk</strong>
+                    <small>DEMO úroveň hluku</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="transport">
+                <input type="checkbox">
+                <span class="layer-icon transport-icon">↔</span>
+
+                <span class="layer-text">
+                    <strong>Doprava</strong>
+                    <small>DEMO skóre dostupnosti</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="schools">
+                <input type="checkbox">
+                <span class="layer-icon school-icon">▣</span>
+
+                <span class="layer-text">
+                    <strong>Školy</strong>
+                    <small>DEMO dostupnost</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="services">
+                <input type="checkbox">
+                <span class="layer-icon service-icon">+</span>
+
+                <span class="layer-text">
+                    <strong>Služby</strong>
+                    <small>DEMO dostupnost</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="parking">
+                <input type="checkbox">
+                <span class="layer-icon parking-icon">P</span>
+
+                <span class="layer-text">
+                    <strong>Parkování</strong>
+                    <small>DEMO dostupnost</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="flood">
+                <input type="checkbox">
+                <span class="layer-icon flood-icon">≈</span>
+
+                <span class="layer-text">
+                    <strong>Povodňové riziko</strong>
+                    <small>DEMO vrstva</small>
+                </span>
+            </label>
+
+
+            <label class="layer-row" data-layer="development">
+                <input type="checkbox">
+                <span class="layer-icon development-icon">↗</span>
+
+                <span class="layer-text">
+                    <strong>Rozvoj oblasti</strong>
+                    <small>DEMO potenciál</small>
+                </span>
+            </label>
+
+        </div>
+
+    </aside>
+
+
+    <!-- LEGEND -->
+    <div id="legend" class="legend">
+
+        <div class="legend-title">
+            <span id="legendTitle">Ceny nemovitostí</span>
+            <span id="legendStatus">REAL DATA</span>
+        </div>
+
+        <div class="gradient"></div>
+
+        <div class="legend-values">
+            <span id="legendLow">Levnější</span>
+            <span id="legendMiddle">Střed</span>
+            <span id="legendHigh">Dražší</span>
+        </div>
+
+    </div>
+
+
+    <!-- LOCATION INFO -->
+    <div id="locationToast" class="location-toast"></div>
+
+
+    <!-- DETAIL PANEL -->
+    <aside id="detailPanel" class="detail-panel">
+
+        <button id="closeDetail" class="close-detail">×</button>
+
+        <div id="detailContent"></div>
+
+    </aside>
+
+
+    <!-- MAP LOADING -->
+    <div id="mapLoading" class="map-loading">
+        <div class="loading-spinner"></div>
+        <span>Načítám mapu České republiky…</span>
+    </div>
+
+</div>
+
+
+<!-- Leaflet JS -->
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin="">
+</script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
